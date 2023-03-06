@@ -1,3 +1,11 @@
+/*-------------------------------------------------
+ * A very simple illustration of thread creation
+ * and context switch mechanism
+ *
+ * JMartins, 2023
+ * build cmd: gcc -o uthread0 -Wall uthread0.c contextswitch.s
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
