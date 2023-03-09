@@ -45,7 +45,8 @@ void f2() {
 	puts("t2: step 1");
 	context_switch(&t2, &t1);
 	puts("t2: step 2");
-	exit(0);
+	context_switch(&t2, &tmain);
+	//exit(0);
 }
 
 
@@ -68,6 +69,7 @@ int main() {
 	thread_init(&t3, f3);
 	
 	context_switch(&tmain, &t1);
-	puts("tmain : not expected here!");
+	//puts("tmain : not expected here!");
+	puts("normal program termination");
 	
 }

@@ -1,6 +1,5 @@
-package isel.leic.pc
+package isel.leic.pc.lec_02_28
 
-import mu.KotlinLogging
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
@@ -9,6 +8,7 @@ import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import kotlin.concurrent.thread
+import mu.KotlinLogging
 
 
 private val logger = KotlinLogging.logger {}
@@ -46,7 +46,7 @@ class EchoServer(private val port : Int) {
         val reader =
             BufferedReader(InputStreamReader(client.getInputStream()))
         val writer =
-            PrintWriter( client.getOutputStream())
+            PrintWriter(client.getOutputStream())
         try {
             do {
                 val line = reader.readLine()
@@ -66,9 +66,11 @@ class EchoServer(private val port : Int) {
             logger.info("client ${client.remoteSocketAddress} disconnected")
         }
     }
-}
+	
 
-private fun main() {
-    val server = EchoServer(8080)
-    server.run()
+
+	private fun main() {
+		val server = EchoServer(8080)
+		server.run()
+	}
 }

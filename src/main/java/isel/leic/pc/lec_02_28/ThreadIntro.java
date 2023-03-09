@@ -1,4 +1,4 @@
-package isel.leic.pc;
+package isel.leic.pc.lec_02_28;
 
 public class ThreadIntro {
     private static void mysleep(long millis) {
