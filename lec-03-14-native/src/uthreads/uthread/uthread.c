@@ -3,7 +3,7 @@
 // CCISEL 
 // 2007-2021
 //
-// UThread library:
+// UThread library: 
 //   User threads supporting cooperative multithreading.
 //
 // Authors:
@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>  // memset
 #include <assert.h>
+#include <time.h>
 
 #include "uthread.h"
 #include "list.h"
@@ -22,6 +23,8 @@
 //
 // UThread types and constants.
 //
+
+
 
 //
 // The data structure representing the layout of a thread's execution
@@ -46,6 +49,7 @@ typedef struct uthread_context {
 struct uthread {
 	uthread_context_t * context;
 	list_entry_t        entry;
+	long duetime;
 	void             (* function)(void *);   
 	void *              argument; 
 	void *              stack;
@@ -55,6 +59,7 @@ struct uthread {
 // The fixed stack size of a user thread.
 //
 #define STACK_SIZE (8 * 4096)
+
 
 //////////////////////////////////////
 //
@@ -119,6 +124,44 @@ __attribute__ ((visibility ("hidden")))
 void internal_cleanup(uthread_t * thread);
 
 
+// stuff to implement support sleep operation
+
+static list_entry_t sleepers_queue;
+
+static long time_in_millis() {
+	struct timespec now;
+	
+	clock_gettime(CLOCK_REALTIME, &now);
+	return now.tv_sec*1000 + now.tv_nsec / 1000000;
+}
+	
+void ut_sleep(long millis) {
+	long duetime = time_in_millis() + millis;
+	running_thread->duetime = duetime;
+	
+	list_entry_t* curr = sleepers_queue.next;
+	while (curr != &sleepers_queue) {
+		uthread_t *tc = container_of(curr, uthread_t, entry);
+		if (tc->duetime >= duetime) break;
+		curr = curr->next;
+	}
+	insert_list_before(curr, &running_thread->entry);	
+	ut_deactivate();
+}
+
+void process_sleepers() {
+	long now = time_in_millis();
+	list_entry_t* curr = sleepers_queue.next;
+	while (curr != &sleepers_queue) {
+		uthread_t *tc = container_of(curr, uthread_t, entry);
+		if (tc->duetime > now) break;
+		list_entry_t* next = curr->next;
+		
+		remove_list_entry(curr);
+		ut_activate(container_of(curr, uthread_t, entry));
+		curr = next;
+	}
+}
 ////////////////////////////////////////
 //
 // UThread inline internal operations.
@@ -129,9 +172,15 @@ void internal_cleanup(uthread_t * thread);
 // queue is empty, the main thread is returned.
 //
 static inline uthread_t * extract_next_thread() {
-	return is_list_empty(&ready_queue) ?
-		main_thread :
-	    container_of(remove_list_first(&ready_queue), uthread_t, entry);
+	uthread_t * next_thread = NULL;
+	do {
+		process_sleepers();
+		next_thread = is_list_empty(&ready_queue) ?
+			main_thread :
+			container_of(remove_list_first(&ready_queue), uthread_t, entry);
+	}
+	while(next_thread == main_thread && number_of_threads > 0);
+	return next_thread;
 }
 
 //
@@ -139,7 +188,8 @@ static inline uthread_t * extract_next_thread() {
 //
 static inline void schedule () {
 	uthread_t * next_thread;
-    next_thread = extract_next_thread();
+	next_thread = extract_next_thread();
+	
 	context_switch(running_thread, next_thread);
 }
 
@@ -155,6 +205,7 @@ static inline void schedule () {
 //
 void ut_init() {
 	init_list_head(&ready_queue);
+	init_list_head(&sleepers_queue);
 }
 
 //

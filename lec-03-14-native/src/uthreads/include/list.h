@@ -7,7 +7,7 @@
 //   User threads supporting cooperative multithreading.
 //
 // Authors:
-//   Carlos Martins, JoÃ£o Trindade, Duarte Nunes, Jorge Martins
+//   Carlos Martins, João Trindade, Duarte Nunes, Jorge Martins
 // 
 
 #ifndef LIST_H
@@ -86,6 +86,17 @@ INLINE void insert_list_after(list_entry_t * ref_entry, list_entry_t * new_entry
 	next->prev = new_entry;
 }
 
+// Inserts the specified new entry before the specified reference entry.
+//
+INLINE void insert_list_before(list_entry_t * ref_entry, list_entry_t * new_entry) {
+	list_entry_t * prev = ref_entry->prev;
+	list_entry_t * next = ref_entry;
+
+	new_entry->prev = prev;
+	new_entry->next = next;
+	prev->next = new_entry;
+	next->prev = new_entry;
+}
 // Inserts the specified entry at the tail of the list.
 //
 INLINE void insert_list_last(list_entry_t * listhead, list_entry_t * entry) {

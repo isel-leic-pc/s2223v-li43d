@@ -38,6 +38,7 @@ class EchoServer1(private val port : Int) {
                 // Note this server creates an unbounded number of threads
                 // Do not do this at home!
                 thread {
+
                     logger.info("client ${clientSocket.remoteSocketAddress} connected")
                     processClient(clientSocket, localClientId)
                 }

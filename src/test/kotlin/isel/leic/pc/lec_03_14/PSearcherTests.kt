@@ -1,4 +1,4 @@
-package isel.leic.pc.lec_03_06
+package isel.leic.pc.lec_03_14
 
 import org.junit.Test
 import kotlin.system.measureNanoTime
@@ -8,7 +8,7 @@ class PSearcherTests {
     private fun buildString() : String {
         val sb = StringBuilder()
 
-        repeat(10000) {
+        repeat(50000) {
             sb.append('a' + (it % 24))
         }
 
@@ -38,6 +38,16 @@ class PSearcherTests {
         val NSTRINGS = 1000_000
         val s = buildString()
         val values = Array<String>(NSTRINGS) { s }
+
+        val (total_seq, time_seq) =
+            test(::search, values, buildString(), "serial")
+        val (total_par, time_par) =
+            test(::psearch, values, buildString(), "parallel")
+
+        assertEquals(NSTRINGS,total_seq )
+        assertEquals(NSTRINGS,total_par )
+        println("seq search in ${time_seq} nanos!")
+        println("par search in ${time_par} nanos!")
 
 
     }
