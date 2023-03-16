@@ -15,6 +15,7 @@ private val logger = KotlinLogging.logger {}
 class EchoServerBounded(private val port : Int) {
     val MAX_CLIENTS = 2
 
+    private val avaiableSessions = Semaphore(MAX_CLIENTS)
 
     private fun sendResponse(writer: PrintWriter, resp : String) {
         writer.println(resp)
@@ -25,12 +26,13 @@ class EchoServerBounded(private val port : Int) {
         val servSocket = ServerSocket()
         servSocket.bind(InetSocketAddress("0.0.0.0", port))
         while(true) {
-
+            avaiableSessions.acquire()
             val clientSocket = servSocket.accept()
             logger.info("client ${clientSocket.remoteSocketAddress} connected")
 
             thread {
                 processClient(clientSocket)
+
             }
         }
     }
@@ -52,6 +54,7 @@ class EchoServerBounded(private val port : Int) {
         finally {
             sendResponse(writer,"Bye")
             client.close()
+            avaiableSessions.release()
             logger.info("client ${client.remoteSocketAddress} disconnected")
         }
     }

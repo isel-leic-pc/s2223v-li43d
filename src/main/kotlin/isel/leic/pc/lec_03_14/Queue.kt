@@ -5,8 +5,9 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-class Queue<T> {
+class Queue<T>( private val capacity : Int) {
     private val elemsAvaiable = Semaphore(0)
+    private val spaceAvaiable = Semaphore(capacity)
 
     private val mutex = ReentrantLock()
 
@@ -14,12 +15,17 @@ class Queue<T> {
 
     fun get() : T {
         elemsAvaiable.acquire()
+        var elem : T?
         mutex.withLock {
-            return elems.pollFirst()
+            elem = elems.pollFirst()
         }
+        spaceAvaiable.release()
+        // always not null
+        return elem!!
     }
 
     fun put(elem : T) {
+        spaceAvaiable.acquire()
         mutex.withLock {
             elems.add(elem)
         }

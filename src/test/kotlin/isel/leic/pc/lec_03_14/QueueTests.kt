@@ -14,7 +14,7 @@ class QueueTests {
         val NOPERS = 30
         val TIMEOUT = 10000L
 
-        val queue = Queue<Int>()
+        val queue = Queue<Int>(QUEUE_CAPACITY)
 
         val writer = thread {
             repeat(NOPERS) {
@@ -25,7 +25,9 @@ class QueueTests {
 
         val reader = thread {
             repeat(NOPERS) {
+                Thread.sleep(100)
                 val e = queue.get()
+
                 logger.info("get $e")
             }
         }
