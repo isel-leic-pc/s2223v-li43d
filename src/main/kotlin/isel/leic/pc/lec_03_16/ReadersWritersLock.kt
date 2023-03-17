@@ -21,26 +21,18 @@ class ReadersWritersLock {
     private val mutex = ReentrantLock()
 
     fun enterReader() {
-        mutex.withLock {
-            ++nReaders
-            if (nReaders == 1)
-                dataAccess.acquire()
-        }
+
     }
 
     fun leaveReader() {
-        mutex.withLock {
-            --nReaders
-            if (nReaders == 0)
-                dataAccess.release()
-        }
+
     }
 
     fun enterWriter() {
-        dataAccess.acquire()
+
     }
 
     fun leaveWriter() {
-        dataAccess.release()
+
     }
 }
