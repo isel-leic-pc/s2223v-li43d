@@ -25,7 +25,7 @@ class ReadersWritersFair {
     // the class used to maintain waiting queues for writers and readers
     // According to the "kernel style", just the state of each node is consulted
     // after waiter reentering the monitor
-    // In this case the state is just a flag that is true meaning "can proceed"
+    // In this case the state is just a flag that, if true, means  "can proceed"
     private class Waiter {
         var done = false
     }
