@@ -8,9 +8,9 @@ import kotlin.concurrent.withLock
  * Here we have a first scenario were we used "execution delegation" (aka "kernel style")
  * technique in order to provide the required semantics:
  *  - A reader can't proceed if there are waiting writers
- *  - On leaveWriter we  must provide the access to all waiting readers
+ *  - On leaveWriter we  must give  access to all waiting readers
  *    (but not new readers that came after)
- *  - On leaveReader, when there are no active readers, we must provide the access
+ *  - On leaveReader, when there are no active readers, we must give  access
  *    to some waiting writer
  *
  */
@@ -23,8 +23,8 @@ class ReadersWritersFair {
     private var writing = false
 
     // the class used to maintain waiting queues for writers and readers
-    // According to the "kernel style" just the state of each node is consulted
-    // after  waiter reentering the monitor after notification
+    // According to the "kernel style", just the state of each node is consulted
+    // after waiter reentering the monitor
     // In this case the state is just a flag that is true meaning "can proceed"
     private class Waiter {
         var done = false
