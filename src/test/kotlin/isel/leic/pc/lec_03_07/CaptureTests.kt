@@ -14,7 +14,7 @@ class CaptureTests {
             num++
             val localnum = num
             thread {
-                println(it)
+                println("it=$it, localNum=$localnum, num=$num")
             }.apply { threads.add(this) }
         }
 
