@@ -3,6 +3,7 @@ package isel.leic.pc.lec_03_14
 import mu.KotlinLogging
 import org.junit.Test
 import kotlin.concurrent.thread
+import kotlin.test.assertEquals
 
 private val logger = KotlinLogging.logger {}
 
@@ -15,6 +16,7 @@ class QueueTests {
         val TIMEOUT = 10000L
 
         val queue = Queue<Int>(QUEUE_CAPACITY)
+        val result = IntArray(NOPERS)
 
         val writer = thread {
             repeat(NOPERS) {
@@ -27,12 +29,16 @@ class QueueTests {
             repeat(NOPERS) {
                 Thread.sleep(100)
                 val e = queue.get()
-
+                result[it] = e
                 logger.info("get $e")
             }
         }
 
         reader.join(TIMEOUT)
         writer.join(TIMEOUT)
+
+        // check result
+        for (i in 0 until NOPERS)
+            assertEquals(i+1, result[i])
     }
 }

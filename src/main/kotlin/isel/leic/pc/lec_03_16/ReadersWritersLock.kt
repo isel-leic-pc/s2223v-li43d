@@ -16,23 +16,22 @@ import kotlin.concurrent.withLock
  * the same difficulty level
  */
 class ReadersWritersLock {
-    private var nReaders = 0
-    private val dataAccess = Semaphore(1)
-    private val mutex = ReentrantLock()
+
 
     fun enterReader() {
-
+        TODO()
     }
 
-    fun leaveReader() {
 
+    fun leaveReader() {
+       TODO()
     }
 
     fun enterWriter() {
-
+        TODO()
     }
 
     fun leaveWriter() {
-
+        TODO()
     }
 }
