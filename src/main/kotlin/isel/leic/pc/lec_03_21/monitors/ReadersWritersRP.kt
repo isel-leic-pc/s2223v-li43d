@@ -3,6 +3,7 @@ package isel.leic.pc.lec_03_21.monitors
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
+
 /**
  * A simple readers/writers implementation
  * with (normally undesirable) priority for readers,
@@ -47,6 +48,7 @@ class ReadersWritersRP {
     fun leaveWriter() {
         monitor.withLock {
             writing = false
+
             // signal all (eventual) waiters
             canAccess.signalAll()
         }

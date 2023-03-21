@@ -50,6 +50,7 @@ class ReadersWritersWP {
     fun leaveWriter() {
         monitor.withLock {
             writing = false
+
             // note that we must do broadcast sinalization
             // because readers and writers are waiting in the same condition
             canAccess.signalAll()
