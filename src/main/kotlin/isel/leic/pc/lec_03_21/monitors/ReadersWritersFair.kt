@@ -22,7 +22,7 @@ class ReadersWritersFair {
     private var nReaders = 0
     private var writing = false
 
-    // the class used to maintain waiting queues for writers and readers
+    // the class used to maintain waiting queues for writers and readers.
     // According to the "kernel style", just the state of each node is consulted
     // after waiter reentering the monitor
     // In this case the state is just a flag that, if true, means  "can proceed"
@@ -36,7 +36,7 @@ class ReadersWritersFair {
     fun enterReader() {
         monitor.withLock {
             // fast path
-            if (!writing ) {
+            if (!writing && waitingWriters.isEmpty()) {
                 nReaders++
                 return
             }
