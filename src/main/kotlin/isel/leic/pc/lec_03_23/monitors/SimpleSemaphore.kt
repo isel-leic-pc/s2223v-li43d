@@ -78,4 +78,11 @@ class SimpleSemaphore(private var permits : Int = 0) {
             while(true)
         }
     }
+
+    fun release() {
+        monitor.withLock {
+            permits++
+            hasPermits.signal()
+        }
+    }
 }
