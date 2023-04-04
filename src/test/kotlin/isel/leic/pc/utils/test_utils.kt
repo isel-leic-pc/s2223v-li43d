@@ -1,4 +1,4 @@
-package isel.leic.pc.lec_03_28.utils
+package isel.leic.pc.utils
 
 import kotlin.concurrent.thread
 

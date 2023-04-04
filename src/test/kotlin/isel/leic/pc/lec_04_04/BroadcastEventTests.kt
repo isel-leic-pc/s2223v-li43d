@@ -1,4 +1,4 @@
-package isel.leic.pc.lec_03_28
+package isel.leic.pc.lec_04_04
 
 import isel.leic.pc.utils.launchMany
 import mu.KotlinLogging
@@ -7,6 +7,7 @@ import org.junit.Test
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
+import kotlin.time.Duration
 
 private val logger = KotlinLogging.logger {}
 
@@ -15,11 +16,11 @@ class BroadcastEventTests {
     fun `check if broadcast in fact releases all event waiters`()  {
         val NWAITERS = 25
 
-        val event = BroadcastEvent()
+        val event = BroadcastEventKSBatch2()
         val waitsCompleted = AtomicInteger(0)
 
         val waiters = launchMany(NWAITERS, "waiter") {
-            event.await()
+            event.await(Duration.INFINITE)
             logger.info("awaked")
             waitsCompleted.incrementAndGet()
         }
