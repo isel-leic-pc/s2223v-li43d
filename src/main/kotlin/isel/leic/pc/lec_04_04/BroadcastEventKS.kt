@@ -81,6 +81,14 @@ class BroadcastEventKS {
     }
 }
 
+/**
+ * In this implementation the BroadcastEvent implementation
+ * uses an optimized variant of kernel style, that we named
+ * batch notification. Here we don't have the list usually
+ * associated to kernel style, but a single object is associated
+ * to all blocking operation waiters (that will be notified all at once,
+ * receiving exactly the same state - hence the name batch notification)
+ */
 class BroadcastEventKSBatch {
     companion object {
         private val CLOSED = 0
@@ -94,10 +102,16 @@ class BroadcastEventKSBatch {
         var done = false
     }
 
+    // the object associated to all current waiters
+    // on await operation
     private var currentWaiters = CurrentWaiters()
 
     private var state = CLOSED
 
+    /**
+     * the notification action using batch notification
+     * Note that we create a new waiters representant preparing the next batch
+     */
     private fun notifyWaiters() {
         currentWaiters.done = true
         opened.signalAll()

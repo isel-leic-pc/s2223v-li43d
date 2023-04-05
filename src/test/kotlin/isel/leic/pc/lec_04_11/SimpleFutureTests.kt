@@ -1,10 +1,8 @@
-package isel.leic.pc.lec_04_04
+package isel.leic.pc.lec_04_11
 
 import org.junit.Test
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 import kotlin.test.assertEquals
-import kotlin.time.Duration
 
 class SimpleFutureTests {
 

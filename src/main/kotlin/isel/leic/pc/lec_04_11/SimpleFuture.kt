@@ -1,4 +1,4 @@
-package isel.leic.pc.lec_04_04
+package isel.leic.pc.lec_04_11
 
 import isel.leic.pc.utils.await
 import isel.leic.pc.utils.dueTime
@@ -39,47 +39,25 @@ class SimpleFuture<V>(val callable : Callable<V>) : Future<V> {
     private var state = State.ACTIVE
 
     override fun cancel(mayInterruptIfRunning: Boolean): Boolean {
-        return monitor.withLock {
-            if (state != State.ACTIVE)  false
-            else {
-                state = State.CANCELLED
-                if (mayInterruptIfRunning) {
-                    thread?.interrupt()
-                }
-            }
-            true
+        monitor.withLock {
+           TODO()
         }
     }
 
     private fun set(value : V) {
         monitor.withLock {
-            if (state == State.ACTIVE) {
-                this.value = value
-                state = State.COMPLETED
-                done.signalAll()
-            }
+            TODO()
         }
     }
 
     private fun setError(e : Exception) {
         monitor.withLock {
-            if (state == State.ACTIVE) {
-                this.error = e
-                state = State.ERROR
-                done.signalAll()
-            }
+            TODO()
         }
     }
 
     private fun start() {
-        thread = thread {
-            try {
-                set(callable.call())
-            }
-            catch (e: Exception) {
-                setError(e)
-            }
-        }
+         TODO()
     }
 
     override fun isCancelled(): Boolean {
@@ -96,24 +74,7 @@ class SimpleFuture<V>(val callable : Callable<V>) : Future<V> {
 
     private fun get(timeout : Duration) : V {
         monitor.withLock {
-            // fast path
-            if (state != State.ACTIVE) {
-                if (state == State.COMPLETED) return value!!
-                if (state == State.CANCELLED)  throw CancellationException()
-                if (state == State.ERROR) throw ExecutionException(error)
-            }
-            if (timeout.isZero) throw TimeoutException()
-
-            val dueTime = timeout.dueTime()
-            do {
-                done.await(dueTime)
-                if (state == State.COMPLETED) return value!!
-                if (state == State.CANCELLED)  throw CancellationException()
-                if (state == State.ERROR) throw ExecutionException(error)
-                if (dueTime.isPast) throw TimeoutException()
-            }
-            while(true)
-
+           TODO()
         }
     }
 
