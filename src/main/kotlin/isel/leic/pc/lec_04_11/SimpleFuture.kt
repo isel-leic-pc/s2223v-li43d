@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 
+
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -38,27 +39,55 @@ class SimpleFuture<V>(val callable : Callable<V>) : Future<V> {
 
     private var state = State.ACTIVE
 
-    override fun cancel(mayInterruptIfRunning: Boolean): Boolean {
-        monitor.withLock {
-           TODO()
-        }
-    }
-
-    private fun set(value : V) {
-        monitor.withLock {
-            TODO()
-        }
-    }
-
-    private fun setError(e : Exception) {
-        monitor.withLock {
-            TODO()
-        }
-    }
 
     private fun start() {
-         TODO()
+        this.thread = thread(start = false) {
+            try {
+                set(callable.call())
+            }
+            catch( e: Exception) {
+                setError(e)
+            }
+        }
+        this.thread?.start()
     }
+
+    @Throws(InterruptedException::class)
+    private fun get(timeout : Duration) : V {
+        monitor.withLock {
+            // fast path
+            if (state == State.COMPLETED) return value!!
+            if (state === State.ERROR) throw ExecutionException(error)
+            if (state == State.CANCELLED)  CancellationException()
+            if (timeout.isZero) throw TimeoutException()
+
+            val dueTime = timeout.dueTime()
+            // wait path
+            do {
+                done.await(dueTime)
+                if (state == State.COMPLETED) return value!!
+                if (state === State.ERROR) throw ExecutionException(error)
+                if (state == State.CANCELLED)  CancellationException()
+                if (dueTime.isPast) throw TimeoutException()
+            }
+            while(true)
+        }
+    }
+
+
+    // interface Future
+
+    override fun cancel(mayInterruptIfRunning: Boolean): Boolean {
+        monitor.withLock {
+            if (state != State.ACTIVE) return false
+            state = State.CANCELLED
+
+            if (mayInterruptIfRunning)
+                thread?.interrupt()
+            return true
+        }
+    }
+
 
     override fun isCancelled(): Boolean {
         monitor.withLock {
@@ -72,18 +101,36 @@ class SimpleFuture<V>(val callable : Callable<V>) : Future<V> {
         }
     }
 
-    private fun get(timeout : Duration) : V {
-        monitor.withLock {
-           TODO()
-        }
-    }
-
+    @Throws(InterruptedException::class)
     override fun get(timeout: Long, unit: TimeUnit): V {
         return get(unit.toMillis(timeout).toDuration(DurationUnit.MILLISECONDS))
     }
 
+    @Throws(InterruptedException::class)
     override fun get(): V {
         return get(Duration.INFINITE)
+    }
+
+    // completion methods
+
+    private fun set(value : V) {
+        monitor.withLock {
+           if (state == State.ACTIVE) {
+               this.value = value
+               state = State.COMPLETED
+               done.signalAll()
+           }
+        }
+    }
+
+    private fun setError(e : Exception) {
+        monitor.withLock {
+            if (state == State.ACTIVE) {
+                this.error = e
+                state = State.ERROR
+                done.signalAll()
+            }
+        }
     }
 
 }

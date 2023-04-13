@@ -73,6 +73,18 @@ class NAryTransferQueue<E> {
         }
     }
 
+    private fun tryResolvePendingTransfers() {
+        while(pendingTransfers.size > 0 &&
+           pendingTransfers.first.msgs.size <= pendingTakers.size) {
+            with(pendingTransfers.poll()) {
+                sendToTakers(msgs)
+                done = true
+                cond.signal()
+            }
+        }
+
+    }
+
     @Throws(InterruptedException::class)
     fun transfer(messages : List<E>, timeout : Duration) : Boolean {
         monitor.withLock {
@@ -99,6 +111,7 @@ class NAryTransferQueue<E> {
                         pendingTransfers.remove(pTransfer)
                         // here something should have been done
                         // Can you find what was forgotten?
+                        tryResolvePendingTransfers()
                         return false
                     }
                 }
@@ -110,6 +123,7 @@ class NAryTransferQueue<E> {
                     pendingTransfers.remove(pTransfer)
                     // here something should have been done
                     // Can you find what was forgotten?
+                    tryResolvePendingTransfers()
                     throw e
                 }
             }

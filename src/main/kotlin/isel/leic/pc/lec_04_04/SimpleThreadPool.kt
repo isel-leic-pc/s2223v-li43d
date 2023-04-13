@@ -20,11 +20,23 @@ class SimpleThreadPool(val maxThreadPoolSize : Int) {
         workers--
     }
 
+    private fun safeRun(work: Runnable) {
+        try {
+            work.run()
+        }
+        catch( t : Throwable) {
+            // for now we just swallow the thrpwable
+            // but we could save it in a log
+            // here we can do it because this is extenal code
+            // that should heve no impact on the pool threads
+        }
+    }
+
     private fun workerFun(work: Runnable) {
 
         var currWork = work
         do {
-            currWork.run()
+            safeRun(currWork)
             monitor.withLock {
                 if (pendingWork.size > 0) {
                     currWork = pendingWork.poll()
