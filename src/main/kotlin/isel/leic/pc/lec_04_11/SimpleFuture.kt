@@ -52,22 +52,27 @@ class SimpleFuture<V>(val callable : Callable<V>) : Future<V> {
         this.thread?.start()
     }
 
+    private fun tryGetResult() : V? {
+        if (state == State.COMPLETED) return value!!
+        if (state === State.ERROR) throw ExecutionException(error)
+        if (state == State.CANCELLED)  CancellationException()
+        return null
+    }
+
     @Throws(InterruptedException::class)
     private fun get(timeout : Duration) : V {
         monitor.withLock {
             // fast path
-            if (state == State.COMPLETED) return value!!
-            if (state === State.ERROR) throw ExecutionException(error)
-            if (state == State.CANCELLED)  CancellationException()
+            val res = tryGetResult()
+            if (res != null) return res
             if (timeout.isZero) throw TimeoutException()
 
             val dueTime = timeout.dueTime()
             // wait path
             do {
                 done.await(dueTime)
-                if (state == State.COMPLETED) return value!!
-                if (state === State.ERROR) throw ExecutionException(error)
-                if (state == State.CANCELLED)  CancellationException()
+                val res = tryGetResult()
+                if (res != null) return res
                 if (dueTime.isPast) throw TimeoutException()
             }
             while(true)
