@@ -4,13 +4,15 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class SpinLock {
 
+    var value = AtomicInteger(1)
 
     fun enter() {
-        TODO()
+        while(!value.compareAndSet(1, 0))
+            Thread.onSpinWait()
     }
 
 
     fun leave() {
-        TODO()
+        value.set(1)
     }
 }
