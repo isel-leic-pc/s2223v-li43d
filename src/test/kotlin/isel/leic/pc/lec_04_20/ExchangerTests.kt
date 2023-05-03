@@ -41,7 +41,7 @@ class ExchangerTests {
             println("thread ${t.name}: isAlive=${t.isAlive}")
             // note that an exchanger of the initial set can stay alone
             // without completing the expected exchanges
-            // this cpde is just to resolve this scenario
+            // this code is just to solve this scenario
             if (t.isAlive) {
                 thread {
                     repeat((EXCHANGERS*NEXCHANGES - result.size)/2) {

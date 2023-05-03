@@ -18,7 +18,6 @@ interface IExchanger<V> {
  * is completed on second partner arrival
  */
 class Exchanger<V> : IExchanger<V> {
-
     /**
      * instances of this class represent an active exchange
      */
@@ -91,6 +90,7 @@ class ExchangerLF<V> : IExchanger<V> {
 
     // the veru same auxiliary class of the monitor with kernel style implementation
     private class Exchange<V>(val value : V) {
+        @Volatile
         var other : V? = null
     }
 
@@ -99,6 +99,7 @@ class ExchangerLF<V> : IExchanger<V> {
     private var exch =
             AtomicReference<Exchange<V>>()
 
+    @Throws(InterruptedException::class)
     override fun exchange(v: V) : V {
         // this is done in eager form just to guarantee that we build only one Exchange.
         // We could also do it in a lazy way, what is left as an exercise
@@ -112,8 +113,15 @@ class ExchangerLF<V> : IExchanger<V> {
                     // this is the waiting part for the partner
                     // timeout and cancellation (interruption) options are missing
                     // Try to support cancellation
-                    while(my_exch.other == null)
+                    var casFailed = false
+                    while(my_exch.other == null) {
+                        if (Thread.currentThread().isInterrupted) {
+                            if (!casFailed && exch.compareAndSet(my_exch, null))
+                                throw InterruptedException()
+                            casFailed = true
+                        }
                         Thread.yield()
+                    }
                     return my_exch.other!!
                 }
            }
