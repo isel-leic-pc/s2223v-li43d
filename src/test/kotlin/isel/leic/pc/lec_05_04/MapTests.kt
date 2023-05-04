@@ -1,4 +1,4 @@
-package isel.leic.pc.lec_05_02
+package isel.leic.pc.lec_05_04
 
 import org.junit.Assert
 import org.junit.Test
@@ -12,19 +12,6 @@ import kotlin.concurrent.withLock
 import kotlin.system.measureTimeMillis
 
 
-private class MutableInt(var initial : Int = 0) {
-    val atomic = AtomicInteger(initial)
-
-    fun increment() : MutableInt {
-        atomic.incrementAndGet()
-        return this
-    }
-
-    val value : Int
-        get() = atomic.get()
-
-    fun add(mutInt : MutableInt) = MutableInt(value + mutInt.value)
-}
 
 /**
  * tests for checking the thread safety and efficiency of different types of
@@ -57,12 +44,12 @@ class MapTests {
      * increment the count of a given word
      */
     private class SpecializedWordCounterMap {
-        val map = HashMap<String, MutableInt>()
+        val map = HashMap<String, AtomicInteger>()
         val mutex = ReentrantLock()
 
         fun increment(key: String) {
             mutex.withLock {
-                map[key] = map[key]?.also { it.increment() } ?: MutableInt(1)
+                map[key] = map[key]?.also { it.incrementAndGet() } ?: AtomicInteger(1)
             }
         }
     }
@@ -83,11 +70,12 @@ class MapTests {
         threads.forEach { it.join()}
     }
 
-    private fun buildSimpleMap() : Map<String, MutableInt> {
-        val map = HashMap<String, MutableInt>()
+    private fun buildSimpleMap() : Map<String, AtomicInteger> {
+        val map = HashMap<String, AtomicInteger>()
 
         buildMap {key->
-            map[key] = map[key]?.also { it.increment() } ?: MutableInt(1)
+            //map[key] = map[key]?.also { it.incrementAndGet() } ?: AtomicInteger(1)
+            map.computeIfAbsent(key) { AtomicInteger() }.incrementAndGet()
         }
         return map
     }
@@ -98,11 +86,11 @@ class MapTests {
      * that execute each of the map operations in the possession
      * of an internal lock
      */
-    private fun buildSynchronizedMap() : Map<String, MutableInt> {
-        val map = Collections.synchronizedMap(HashMap<String, MutableInt>())
+    private fun buildSynchronizedMap() : Map<String, AtomicInteger> {
+        val map = Collections.synchronizedMap(HashMap<String, AtomicInteger>())
 
         buildMap {key->
-            map[key] = map[key]?.also { it.increment() } ?: MutableInt(1)
+            map[key] = map[key]?.also { it.incrementAndGet() } ?: AtomicInteger(1)
         }
         return map
     }
@@ -114,10 +102,11 @@ class MapTests {
      * of client threads
      * map.computeIfAbsent(key) { MutableInt() }.increment()
      */
-    private fun buildConcurrentMap() : Map<String, MutableInt> {
-        val map = ConcurrentHashMap<String, MutableInt>()
+    private fun buildConcurrentMap() : Map<String, AtomicInteger> {
+        val map = ConcurrentHashMap<String, AtomicInteger>()
         buildMap {key ->
-            map[key] = map[key]?.also { it.increment() } ?: MutableInt(1)
+            //map[key] = map[key]?.also { it.incrementAndGet() } ?: AtomicInteger(1)
+            map.computeIfAbsent(key) { AtomicInteger(0) }.incrementAndGet()
         }
         return map
     }
@@ -126,7 +115,7 @@ class MapTests {
      * this creates a word counter map using the SpecializedWordCounterMap
      * defined above
      */
-    private fun buildSpecializedWordCounterMap() : Map<String, MutableInt> {
+    private fun buildSpecializedWordCounterMap() : Map<String, AtomicInteger> {
         val map = SpecializedWordCounterMap()
         buildMap {
                 key-> map.increment(key)
@@ -137,7 +126,7 @@ class MapTests {
     /**
      * A generic test function that evaluates and shows the execution time
      */
-    private fun doTest(builder : () -> Map<String, MutableInt>, name : String) : Int{
+    private fun doTest(builder : () -> Map<String, AtomicInteger>, name : String) : Int{
 
         var count = 0
         val duration = measureTimeMillis {
@@ -145,8 +134,8 @@ class MapTests {
 
             count =
                 map.values.reduce { m1, m2 ->
-                    m1.add(m2)
-                }.value
+                    AtomicInteger(m1.get() + m2.get())
+                }.get()
 
         }
         println("$name in $duration ms")
@@ -193,4 +182,3 @@ class MapTests {
     }
 
 }
-
