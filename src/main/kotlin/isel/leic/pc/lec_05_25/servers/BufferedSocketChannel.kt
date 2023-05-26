@@ -1,4 +1,4 @@
-package isel.leic.pc.coroutines.servers
+package isel.leic.pc.lec_05_25.servers
 
 import org.slf4j.LoggerFactory
 import java.io.Closeable
@@ -6,12 +6,11 @@ import java.nio.ByteBuffer
 import java.nio.CharBuffer
 import java.nio.channels.AsynchronousSocketChannel
 
-class BufferedSocketChannel(
-    private val _channel: AsynchronousSocketChannel,
-    bufCapacity : Int = BYTEBUF_SIZE)  : Closeable {
 
-    val channel
-        get() = _channel
+class BufferedSocketChannel {
+    /*
+    private val channel: AsynchronousSocketChannel,
+    bufCapacity : Int = BYTEBUF_SIZE)  : Closeable {
 
     companion object {
         private val BYTEBUF_SIZE = 512
@@ -35,14 +34,17 @@ class BufferedSocketChannel(
     }
 
     private fun retrieveStringFromCharBuffer(size: Int, discardEol : Boolean = true) : String {
-        val lineSize = if (discardEol) size-2 else size
+        val lineSepSize = System.lineSeparator().length
+
+        val lineSize = if (discardEol) size-lineSepSize else size
         val charArray = CharArray(lineSize)
         chars.flip()
 
         chars.get(charArray, 0, lineSize)
         if (discardEol) {
-            chars.get() // CR
-            chars.get() // LF
+            repeat(lineSepSize) {
+                chars.get()
+            }
         }
 
         chars.compact()
@@ -52,8 +54,8 @@ class BufferedSocketChannel(
 
     private suspend fun moreBytesToInputBuffer(fill: (ByteBuffer) -> Int): Boolean {
         var nBytes = fill(inBuffer)
-        if (nBytes == -2)  nBytes = _channel.readSuspend(inBuffer)
-        logger.info("read $nBytes bytes  from channel ${_channel.localAddress}")
+        if (nBytes == -2)  nBytes = channel.readSuspend(inBuffer)
+        logger.info("read $nBytes bytes  from channel ${channel.localAddress}")
 
         return ( nBytes > 0)
     }
@@ -63,7 +65,7 @@ class BufferedSocketChannel(
         if (chars.position() == 0)
             previousStart = 0;
         else
-            // to avoid breaks between CR and LF
+        // to avoid breaks between CR and LF
             previousStart = chars.position() -1
 
         decoder.decode(inBuffer, chars, false)
@@ -90,13 +92,17 @@ class BufferedSocketChannel(
         outBuffer.put(13)
         outBuffer.put(10)
         outBuffer.flip()
-        _channel.writeSuspend(outBuffer)
+        channel.writeSuspend(outBuffer)
         outBuffer.clear()
     }
 
     override fun close() {
-        _channel.shutdownOutput()
-        _channel.shutdownInput()
-        _channel.close()
+        channel.shutdownOutput()
+        channel.shutdownInput()
+        channel.close()
     }
+    */
+
+
 }
+
