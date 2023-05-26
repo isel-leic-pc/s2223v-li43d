@@ -16,6 +16,8 @@ import kotlin.time.toDuration
 
 private val logger = KotlinLogging.logger {}
 
+
+// tests for Semaphore with acquire suspend
 class SemaphoreCRTests {
 
     @Test
