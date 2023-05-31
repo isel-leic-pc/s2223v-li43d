@@ -1,6 +1,7 @@
 package isel.leic.pc.lec_05_25.asynchronizers
 
 import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import mu.KotlinLogging
 import java.util.*
@@ -29,14 +30,8 @@ class SemaphoreCR(private var permits: Int = 0 ) {
                     timeoutHandler(this)
                 }
             }
-
         }
 
-        fun setCancellationHandler(cancellationHandler : (Waiter) -> Unit) {
-            cont.invokeOnCancellation {
-                cancellationHandler(this)
-            }
-        }
     }
 
 
@@ -46,28 +41,36 @@ class SemaphoreCR(private var permits: Int = 0 ) {
 
     @Throws(TimeoutException::class)
     suspend fun acquire(toAcquire: Int, timeout: Duration): Unit {
+        var waiter : Waiter? = null
+        try {
+            suspendCancellableCoroutine<Unit> { cont ->
+                mutex.withLock {
+                    if (permits >= toAcquire) {
+                        permits -= toAcquire
+                        cont.resume(Unit)
+                    } else {
+                        if (timeout == Duration.ZERO) {
+                            cont.resumeWithException(TimeoutException())
+                        } else {
+                            waiter = Waiter(toAcquire, cont)
+                            waiters.add(waiter!!)
+                            waiter?.setTimeoutHandler(timeout, ::tryCompleteWithTimeout)
 
-        suspendCancellableCoroutine<Unit> { cont ->
+                        }
 
-            mutex.withLock {
-                if (permits >= toAcquire) {
-                    permits -= toAcquire
-                    cont.resume(Unit)
-                }
-                else {
-                    if (timeout == Duration.ZERO) {
-                        cont.resumeWithException(TimeoutException())
                     }
-                    else {
-                        val waiter = Waiter(toAcquire, cont)
-                        waiters.add(waiter)
-                        waiter.setTimeoutHandler(timeout, ::tryCompleteWithTimeout)
-                        waiter.setCancellationHandler(::tryCompleteWithCancelled)
-                    }
-
                 }
             }
         }
+        catch(e: CancellationException) {
+             waiter?.also {
+                 if (tryCompleteWithCancelled(it))
+                     throw e
+             }
+
+        }
+
+
     }
 
     fun release(toRelease: Int) {
@@ -75,6 +78,7 @@ class SemaphoreCR(private var permits: Int = 0 ) {
             permits += toRelease
             while(waiters.size > 0 && waiters.first.toAcquire <= permits) {
                 val waiter = waiters.poll()
+                permits -= waiter.toAcquire
                 waiter.done = true
                 waiter.timer?.cancel(true)
                 waiter.cont.resume(Unit)
@@ -92,12 +96,12 @@ class SemaphoreCR(private var permits: Int = 0 ) {
         }
     }
 
-    private fun tryCompleteWithCancelled(waiter : Waiter) {
+    private fun tryCompleteWithCancelled(waiter : Waiter) : Boolean {
         mutex.withLock {
-            if (!waiter.done) {
-                waiter.done = true
-                waiters.remove(waiter)
-            }
+            if (waiter.done) return false
+            waiter.done = true
+            waiters.remove(waiter)
+            return true
         }
     }
 }

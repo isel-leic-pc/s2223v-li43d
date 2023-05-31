@@ -1,12 +1,10 @@
 package isel.leic.pc.lec_05_23
 
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
+
 
 private val displayMutex = Mutex()
 
