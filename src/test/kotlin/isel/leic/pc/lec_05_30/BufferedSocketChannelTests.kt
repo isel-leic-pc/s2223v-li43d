@@ -30,11 +30,14 @@ class BufferedSocketChannelTests {
             }
         }
 
-        val buffer = BufferedSocketChannel(channel, 512,  fill)
+
         runBlocking {
-            val line = buffer.readLine()
-            println(line)
-            assertEquals("ABC", line)
+            val buffer = BufferedSocketChannel(channel, 512,  fill)
+            buffer.use {
+                val line = buffer.readLine()
+                println(line)
+                assertEquals("ABC", line)
+            }
         }
     }
 
@@ -58,9 +61,12 @@ class BufferedSocketChannelTests {
         }
         val buffer = BufferedSocketChannel(channel, 512, fill)
         runBlocking {
-            val line = buffer.readLine()
-            println(line)
-            assertEquals("ABC", line)
+            buffer.use {
+                val line = buffer.readLine()
+                println(line)
+                assertEquals("ABC", line)
+            }
+
         }
     }
 
@@ -84,22 +90,24 @@ class BufferedSocketChannelTests {
         }
         val buffer = BufferedSocketChannel(channel, 512, fill)
         runBlocking {
-            var line = buffer.readLine()
-            println(line)
-            assertEquals("ABC", line)
-            line = buffer.readLine()
-            println(line)
-            assertEquals("DE", line)
-            line = buffer.readLine()
-            println(line)
-            assertEquals("F", line)
-            line = buffer.readLine()
-            println(line)
-            assertEquals("GH", line)
-            line = buffer.readLine()
-            println(line)
-            assertEquals("I", line)
-            assertNull( buffer.readLine())
+            buffer.use {
+                var line = buffer.readLine()
+                println(line)
+                assertEquals("ABC", line)
+                line = buffer.readLine()
+                println(line)
+                assertEquals("DE", line)
+                line = buffer.readLine()
+                println(line)
+                assertEquals("F", line)
+                line = buffer.readLine()
+                println(line)
+                assertEquals("GH", line)
+                line = buffer.readLine()
+                println(line)
+                assertEquals("I", line)
+                assertNull( buffer.readLine())
+            }
         }
     }
 
@@ -135,11 +143,14 @@ class BufferedSocketChannelTests {
         }
         val buffer = BufferedSocketChannel(channel, 512, fill)
         runBlocking {
-            val line1 = buffer.readLine()
-            println(line1)
-            assertEquals("ABC", line1)
-            val line2 = buffer.readLine()
-            assertNull(line2)
+            buffer.use {
+                val line1 = buffer.readLine()
+                println(line1)
+                assertEquals("ABC", line1)
+                val line2 = buffer.readLine()
+                assertNull(line2)
+            }
+
         }
     }
 
@@ -176,14 +187,16 @@ class BufferedSocketChannelTests {
         val buffer = BufferedSocketChannel(channel,512, fill)
 
         runBlocking {
-            val line1 = buffer.readLine()
-            println(line1)
-            assertEquals("ABC", line1)
-            val line2 = buffer.readLine()
-            assertEquals("FG", line2)
-            println(line2)
-            val line3 = buffer.readLine()
-            assertNull(line3)
+            buffer.use {
+                val line1 = buffer.readLine()
+                println(line1)
+                assertEquals("ABC", line1)
+                val line2 = buffer.readLine()
+                assertEquals("FG", line2)
+                println(line2)
+                val line3 = buffer.readLine()
+                assertNull(line3)
+            }
         }
 
     }
@@ -222,20 +235,23 @@ class BufferedSocketChannelTests {
         val buffer = BufferedSocketChannel(channel,512, fill)
 
         runBlocking {
-            val line1 = buffer.readLine()
-            println(line1)
-            assertEquals("ABC", line1)
-            val line2 = buffer.readLine()
-            assertEquals("FG", line2)
-            println(line2)
-            val line3 = buffer.readLine()
-            assertNull(line3)
+            buffer.use {
+                val line1 = buffer.readLine()
+                println(line1)
+                assertEquals("ABC", line1)
+                val line2 = buffer.readLine()
+                assertEquals("FG", line2)
+                println(line2)
+                val line3 = buffer.readLine()
+                assertNull(line3)
+            }
+
         }
 
     }
 
     @Test
-    public fun `buffer with a big line (graeter than max) terminated by crlf`() {
+    public fun `buffer with a big line (greater than max) terminated by crlf`() {
         val channel = AsynchronousSocketChannel.open()
         var state = 0
         val fill : (ByteBuffer) -> Int = { bb ->
@@ -254,13 +270,16 @@ class BufferedSocketChannelTests {
 
         val buffer = BufferedSocketChannel(channel, 512, 5, fill)
         runBlocking {
-            var line = buffer.readLine()
-            println(line)
-            assertEquals("ABCDE", line)
-            line = buffer.readLine()
-            println(line)
-            assertEquals("FG", line)
-            assertNull(buffer.readLine())
+            buffer.use {
+                var line = buffer.readLine()
+                println(line)
+                assertEquals("ABCDE", line)
+                line = buffer.readLine()
+                println(line)
+                assertEquals("FG", line)
+                assertNull(buffer.readLine())
+            }
+
         }
     }
 }

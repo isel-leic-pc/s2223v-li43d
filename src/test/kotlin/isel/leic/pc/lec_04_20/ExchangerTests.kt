@@ -45,9 +45,9 @@ class ExchangerTests {
             if (t.isAlive) {
                 thread {
                     repeat((EXCHANGERS*NEXCHANGES - result.size)/2) {
-                        val t = exchanger.exchange(valGenerator.getAndIncrement())
+                        val t1 = exchanger.exchange(valGenerator.getAndIncrement())
                         mutex.withLock {
-                            result.add(t)
+                            result.add(t1)
                         }
                     }
                 }.join()

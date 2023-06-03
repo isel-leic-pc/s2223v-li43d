@@ -12,19 +12,18 @@ import kotlin.coroutines.resumeWithException
 
 
 
-suspend fun AsynchronousServerSocketChannel.acceptSuspend(timeout: Long = Long.MAX_VALUE )
+suspend fun AsynchronousServerSocketChannel.acceptSuspend()
                 : AsynchronousSocketChannel {
     TODO()
 }
 
 suspend fun AsynchronousSocketChannel.readSuspend (
-                  dst: ByteBuffer,
-                  timeout: Long = Long.MAX_VALUE) : Int {
+                  dst: ByteBuffer) : Int {
     TODO()
 }
 
 suspend fun AsynchronousSocketChannel.writeSuspend (
-                   dst: ByteBuffer,
-                   timeout: Long = Long.MAX_VALUE) : Int {
+                   dst: ByteBuffer) : Int {
     TODO()
 }
+

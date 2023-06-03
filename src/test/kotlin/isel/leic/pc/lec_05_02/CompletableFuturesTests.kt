@@ -39,7 +39,7 @@ class CompletableFuturesTests {
             .thenCompose {
                 oper3Async(it)
             }
-            .whenComplete { res, error ->
+            .whenComplete { _ , error ->
                 if (error != null)
                     logger.info("error on completable chain!")
             }
@@ -62,11 +62,11 @@ class CompletableFuturesTests {
             .thenCompose {
                 oper3Async(it)
             }
-            .whenComplete { res, error ->
+            .whenComplete { _ , error ->
                 if (error != null)
                     logger.info("error on completable chain!")
             }
-            .exceptionally { error ->
+            .exceptionally { _ ->
                 0
             }
 
@@ -88,7 +88,7 @@ class CompletableFuturesTests {
             cf3
         )
         .whenComplete {
-                v, e ->
+                _ , e ->
             if (e != null) {
                 logger.info("final error: $e")
 
